@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Use Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Build Plugin
+        run: |
+          bun install
+          bun run build
+
+      - name: Create Release
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            dist/main.js \
+            dist/styles.css \
+            dist/manifest.json
+
+      - name: Upload Artifacts
+        if: github.event_name == 'workflow_dispatch' && ((github.repository != 'azyarashi/better-linked-tab') || (github.actor == 'azyarashi'))
+        uses: actions/upload-artifact@v6
+        with:
+          name: better-linked-tab
+          retention-days: 7
+          path: |
+            dist/main.js
+            dist/styles.css
+            dist/manifest.json

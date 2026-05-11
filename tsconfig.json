@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+
+    "allowJs": false,
+    "allowImportingTsExtensions": true,
+
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+
+    "strict": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
+
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+
+    "types": ["bun-types", "vite/client", "obsidian-typings"],
+    "paths": {
+      "@/*": ["./src/*"],
+
+      "obsidian": [
+        "./node_modules/obsidian/obsidian.d.ts",
+        "./node_modules/obsidian/canvas.d.ts",
+        "./node_modules/obsidian/publish.d.ts"
+      ],
+      "@codemirror/view": ["./node_modules/@codemirror/view"],
+      "@codemirror/state": ["./node_modules/@codemirror/state"]
+    }
+  },
+  "include": ["src"]
+}

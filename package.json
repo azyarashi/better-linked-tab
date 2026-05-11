@@ -1,0 +1,28 @@
+{
+	"name": "better-linked-tab",
+	"scripts": {
+		"build": "bunx --bun vite build",
+		"check": "bunx biome check --write",
+		"test": "bun test",
+		"test:watch": "bun test --watch",
+		"tsgo": "bunx --bun tsgo --noEmit"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.15",
+		"@types/bun": "^1.3.13",
+		"@typescript/native-preview": "^7.0.0-dev.20260510.1",
+		"autoprefixer": "^10.5.0",
+		"builtin-modules": "^5.2.0",
+		"esbuild": "^0.28.0",
+		"obsidian": "^1.12.3",
+		"postcss": "^8.5.14",
+		"obsidian-typings": "^5.21.0",
+		"vite": "^8.0.11",
+		"vite-plugin-static-copy": "^4.1.0",
+		"@codemirror/view": "^6.42.1",
+		"@codemirror/state": "^6.6.0"
+	},
+	"peerDependencies": {
+		"typescript": "^6.0.3"
+	}
+}

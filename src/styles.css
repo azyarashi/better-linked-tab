@@ -1,0 +1,26 @@
+.betterlinkedtab-section.is-active.mode-highlight {
+  background-color: var(--betterlinkedtab-section-highlight-color);
+}
+
+.betterlinkedtab-section.is-active.mode-indicator {
+  position: relative !important;
+}
+
+.betterlinkedtab-section.is-active.mode-indicator::before {
+  content: "";
+  position: absolute !important;
+  left: calc(var(--size-4-2) * -1);
+  top: 0;
+  bottom: 0;
+  width: var(--size-2-1);
+  background-color: var(--betterlinkedtab-section-indicator-color);
+  pointer-events: none;
+}
+
+.betterlinkedtab-sentence.is-active.mode-highlight {
+  background-color: var(--betterlinkedtab-sentence-highlight-color) !important;
+}
+
+.betterlinkedtab-sentence.is-active.mode-underline {
+  border-bottom: 2px solid var(--betterlinkedtab-sentence-underline-color) !important;
+}

@@ -1,0 +1,67 @@
+version: "3"
+
+dotenv:
+  - ".env"
+vars:
+  PLUGIN_ID: "better-linked-tab"
+
+tasks:
+  default:
+    - task: help
+
+  help:
+    silent: true
+    cmds:
+      - task -l
+
+  check:
+    cmds:
+      - bun update --latest
+      - bunx biome check
+
+  placestatic:
+    vars:
+      PLUGIN_DIR: "{{.CONFIG_DIR}}/plugins/{{.PLUGIN_ID}}"
+    cmds:
+      - mkdir -p "{{.PLUGIN_DIR}}"
+      - touch '{{.PLUGIN_DIR}}/.hotreload'
+      - cp -f manifest.json '{{.PLUGIN_DIR}}'
+    desc: "Copy static files to plugin directory"
+  dev:
+    cmds:
+      - bunx --bun vite build -w -m development --outDir
+        '{{.CONFIG_DIR}}/plugins/{{.PLUGIN_ID}}'
+    desc: "Build in development mode and copy to plugin directory"
+
+  release:
+    vars:
+      tag:
+        sh: "bun scripts/version.ts --type {{.TYPE}}"
+    cmds:
+      - bunx --bun vite build
+      - git add manifest.json versions.json
+      - 'git commit -m "release: {{.tag}}"'
+      - git tag "{{.tag}}"
+      - git push
+      - git push origin "{{.tag}}"
+      - task placestatic
+    preconditions:
+      - sh: "[ {{.TYPE}} != '' ]"
+    desc: "e.g. task release TYPE=major | TYPE=minor | TYPE=patch | TYPE=mock"
+
+  re-release:
+    vars:
+      tag:
+        sh: "bun scripts/version.ts --type mock"
+    cmds:
+      - cmd: gh release delete "{{.tag}}" --yes --cleanup-tag
+        ignore_error: true
+      - cmd: git push origin --delete "{{.tag}}"
+        ignore_error: true
+      - cmd: git tag -d "{{.tag}}"
+        ignore_error: true
+      - bunx --bun vite build -c vite.config.types.ts
+      - git add docs/API/api.d.ts
+      - git tag "{{.tag}}"
+      - git push origin "{{.tag}}"
+      - echo "Tag {{.tag}} re-pushed. Workflow will be triggered."
