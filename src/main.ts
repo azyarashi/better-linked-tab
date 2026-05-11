@@ -43,7 +43,12 @@ export default class ObsidianBetterLinkedTab extends Plugin {
     this.decorator = new Decorator(this);
 
     this.registerMarkdownPostProcessor((el, ctx) => {
-      if (el.hasClass(OBSIDIAN_HEADER_CLASS) || el.hasClass(OBSIDIAN_PRE_CLASS)) return;
+      if (
+        el.hasClass(OBSIDIAN_HEADER_CLASS) ||
+        el.hasClass(OBSIDIAN_PRE_CLASS) ||
+        (el.firstChild as HTMLElement)?.classList?.contains('math')
+      )
+        return;
       el.addClass(SECTION_CLASS);
       if (!this.groupId) return;
 

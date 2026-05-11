@@ -60,8 +60,6 @@ tasks:
         ignore_error: true
       - cmd: git tag -d "{{.tag}}"
         ignore_error: true
-      - bunx --bun vite build -c vite.config.types.ts
-      - git add docs/API/api.d.ts
       - git tag "{{.tag}}"
       - git push origin "{{.tag}}"
       - echo "Tag {{.tag}} re-pushed. Workflow will be triggered."
