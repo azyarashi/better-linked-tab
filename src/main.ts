@@ -1,4 +1,4 @@
-import type { Line, SelectionRange } from '@codemirror/state';
+import type { SelectionRange } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 import { type Debouncer, debounce, MarkdownView, Plugin, type View } from 'obsidian';
 // biome-ignore format: readability
@@ -30,8 +30,10 @@ export default class ObsidianBetterLinkedTab extends Plugin {
   };
   activeSectionContext = {
     sourceText: '',
+    partsCount: 0,
     sentenceIndices: [] as number[],
   };
+  private lastContextKey = '';
 
   // lib
   decorator!: Decorator;
@@ -61,7 +63,12 @@ export default class ObsidianBetterLinkedTab extends Plugin {
       el.addClass(IS_ACTIVE_CLASS);
       applyDecoratorMode(el, this.settings.sectionHighlightMode);
       this.decorator.ensureWrapped(el);
-      this.decorator.updateSentenceDecorations(el);
+
+      const sourceView = this.getActiveSourceView();
+      if (sourceView) {
+        this.updateActiveSectionContext((sourceView.editor as any).cm, lineStart, lineEnd);
+        this.decorator.updateSentenceDecorations(el);
+      }
     });
 
     this.app.workspace.onLayoutReady(() => {
@@ -117,6 +124,8 @@ export default class ObsidianBetterLinkedTab extends Plugin {
         el.addClass(IS_ACTIVE_CLASS);
         applyDecoratorMode(el, this.settings.sectionHighlightMode);
         this.decorator.ensureWrapped(el);
+
+        this.updateActiveSectionContext(view, lineStart, lineEnd);
         this.decorator.updateSentenceDecorations(el);
       } else if (el.hasClass(IS_ACTIVE_CLASS)) {
         clearSectionDecorations(el);
@@ -177,27 +186,43 @@ export default class ObsidianBetterLinkedTab extends Plugin {
       lineFrom: lineFrom.number - 1,
       lineTo: lineTo.number - 1,
     };
-
-    this.updateActiveSectionContext(view, lineFrom, lineTo);
   }
 
-  private updateActiveSectionContext(view: EditorView, lineFrom: Line, lineTo: Line) {
-    const sectionStart = view.state.doc.line(lineFrom.number).from;
-    const sectionEnd = view.state.doc.line(lineTo.number).to;
-    const sourceText = view.state.doc.sliceString(sectionStart, sectionEnd);
+  private getActiveSourceView(): MarkdownView | null {
+    if (!this.groupId) return null;
+    const leaves = this.app.workspace.getGroupLeaves(this.groupId);
+    return (
+      (leaves.find((leaf) => leaf.view instanceof MarkdownView && leaf.view.getMode() === MARKDOWN_MODES.SOURCE)
+        ?.view as MarkdownView) || null
+    );
+  }
+
+  private updateActiveSectionContext(view: EditorView, lineStart: number, lineEnd: number) {
+    const key = `${lineStart}-${lineEnd}-${view.state.doc.length}-${this.cursorContext.from}-${this.cursorContext.to}`;
+    if (this.lastContextKey === key) return;
+    this.lastContextKey = key;
+
+    const doc = view.state.doc;
+    const startLine = doc.line(Math.max(1, Math.min(lineStart + 1, doc.lines)));
+    const endLine = doc.line(Math.max(1, Math.min(lineEnd + 1, doc.lines)));
+    const sectionStart = startLine.from;
+    const sectionEnd = endLine.to;
+    const sourceText = doc.sliceString(sectionStart, sectionEnd);
+
+    const parts = sourceText.split(this.sentenceDelimiterRegex).filter((p) => 0 < p.trim().length);
 
     this.activeSectionContext = {
       sourceText,
+      partsCount: parts.length,
       sentenceIndices: this.calculateActiveSentenceIndices(
-        sourceText,
+        parts,
         this.cursorContext.from - sectionStart,
         this.cursorContext.to - sectionStart,
       ),
     };
   }
 
-  private calculateActiveSentenceIndices(sourceText: string, startPos: number, endPos: number): number[] {
-    const parts = sourceText.split(this.sentenceDelimiterRegex).filter((p) => 0 < p.trim().length);
+  private calculateActiveSentenceIndices(parts: string[], startPos: number, endPos: number): number[] {
     const indices: number[] = [];
     let cumulative = 0;
 

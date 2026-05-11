@@ -92,12 +92,9 @@ export class Decorator {
   }
 
   updateSentenceDecorations(container: HTMLElement) {
-    const { sourceText, sentenceIndices } = this.plugin.activeSectionContext;
+    const { sourceText, partsCount, sentenceIndices } = this.plugin.activeSectionContext;
     if (!sourceText) return;
 
-    const sourcePartsCount = sourceText
-      .split(this.plugin.sentenceDelimiterRegex)
-      .filter((p) => 0 < p.trim().length).length;
     const renderedSentences = container.querySelectorAll(`.${SENTENCE_CLASS}`);
 
     let maxIdx = -1;
@@ -107,7 +104,7 @@ export class Decorator {
     });
     const renderedCount = maxIdx + 1;
 
-    if (sourcePartsCount === renderedCount) {
+    if (partsCount === renderedCount) {
       renderedSentences.forEach((s) => {
         if (!(s instanceof HTMLElement)) return;
         const idx = parseInt(s.dataset.index || '-1', 10);
