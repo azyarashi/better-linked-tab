@@ -1,10 +1,16 @@
 import builtinModules from 'builtin-modules';
 import { defineConfig, type UserConfig } from 'vite';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig(({ mode }) => {
   const prod = mode === 'production';
 
   return {
+    plugins: [
+      viteStaticCopy({
+        targets: prod ? [{ src: 'manifest.json', rename: 'manifest.json', dest: '' }] : [],
+      }),
+    ],
     build: {
       lib: {
         entry: 'src/main.ts',
